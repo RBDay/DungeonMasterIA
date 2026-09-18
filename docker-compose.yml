@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # 1. Base de datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: fastapi_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: mi_base_datos
+      MYSQL_USER: platano_user
+      MYSQL_PASSWORD: platano_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # 2. phpMyAdmin para gestionar la BD desde el navegador
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: fastapi_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db  # <--- Se comunica usando el nombre del servicio de arriba
+      PMA_USER: root
+      PMA_PASSWORD: root_password
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+  # 3. Backend (FastAPI)
+  api:
+    build: ./API
+    container_name: fastapi_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./API:/app  # Sincroniza tu código local para desarrollo en vivo
+    environment:
+      - DATABASE_URL=mysql+aiomysql://platano_user:platano_password@db:3306/mi_base_datos
+    depends_on:
+      - db
+
+  # 4. Frontend
+  front:
+    build: ./FRONT
+    container_name: fastapi_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./FRONT:/app
+    depends_on:
+      - api
+
+volumes:
+  mysql_data:
