@@ -1,3 +1,6 @@
 API/.env
 FRONT/node_modules
-API/__pycache__
+__pycache__/
+*.pyc
+.vs/
+.venv/
